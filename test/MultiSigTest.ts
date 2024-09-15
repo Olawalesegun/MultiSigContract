@@ -195,11 +195,30 @@ describe("", function() {
     async function reqForTransferAndApproval(){
       const {token, multiSig} = await loadFixture(deployCodeAsGlobal);
       const [owner, signer1, signer2, signer3, recipient] = await hre.ethers.getSigners();
-      const toBeTransferredAmount = await ethers.parseUnits("20", 18);
+      const toBeTransferredAmount = await ethers.parseUnits("2000", 18);
       await token.transfer(multiSig.getAddress(), toBeTransferredAmount);
 
       return {multiSig, token, toBeTransferredAmount, owner, signer1, signer2, signer3, recipient};
     }
+
+    it("Should test that when I transfer and I get the required approval, transaction can go through", async function(){
+      const { token, multiSig, owner, signer1, signer2, signer3, recipient } = await loadFixture(reqForTransferAndApproval);
+      const amount = hre.ethers.parseUnits("20", 18);
+
+      const recipientTokenBalanceBeforeTx = await token.balanceOf(await recipient.getAddress());
+      console.log("BEFORE::: ", recipientTokenBalanceBeforeTx.toString());
+      await multiSig.connect(owner).transfer(amount, await recipient.getAddress(), await token.getAddress());
+      const txId = await multiSig.txCount();
+      await multiSig.connect(signer2).approveTx(txId);
+      await multiSig.connect(signer3).approveTx(txId);
+
+      const recpTokenBalanceAfterTx = await token.balanceOf(await recipient.getAddress());
+      console.log("BALANCE AFTER::: ", recpTokenBalanceAfterTx.toString());
+
+      expect(recpTokenBalanceAfterTx).to.be.greaterThan(recipientTokenBalanceBeforeTx);
+      expect(recpTokenBalanceAfterTx).to.equal(recipientTokenBalanceBeforeTx + amount);
+     
+    })
 
   })
 });
