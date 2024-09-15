@@ -181,5 +181,25 @@ describe("", function() {
       .to.be.revertedWith("address zero found");
     })
 
+    it("should test that the multi sig address has sufficient balance to send out", async function(){
+      const {token, multiSig, owner, signer1, signer2, recipient} = await loadFixture(deployContractWithTokens);
+      const amountToBePassed = await hre.ethers.parseUnits("8000", 18);
+
+      expect(multiSig.connect(owner).transfer(amountToBePassed, recipient.getAddress(), token.getAddress()))
+      .to.be.revertedWith("insufficient funds");
+    });
+
+  });
+
+  describe("Transfer and Approval functionality", function(){
+    async function reqForTransferAndApproval(){
+      const {token, multiSig} = await loadFixture(deployCodeAsGlobal);
+      const [owner, signer1, signer2, signer3, recipient] = await hre.ethers.getSigners();
+      const toBeTransferredAmount = await ethers.parseUnits("20", 18);
+      await token.transfer(multiSig.getAddress(), toBeTransferredAmount);
+
+      return {multiSig, token, toBeTransferredAmount, owner, signer1, signer2, signer3, recipient};
+    }
+
   })
 });
