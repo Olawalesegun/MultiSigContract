@@ -30,7 +30,7 @@ contract Multisig {
     mapping(address => QuorumChanges) public signerQuorumProposal;
 
     event QuorumUpdateRequest(address _from, uint256 uinthhhhhhhhhhhhh);
-      
+    event ApprovalConfirmed(address whoApproves);
 
     mapping(address => bool) public isValidSigner;
     mapping(uint => Transaction) transactions; // txId -> Transaction
@@ -145,6 +145,8 @@ contract Multisig {
       if(lengthOfSigners == quorum) {
         quorum = uint8(signerQuorumProposal[creator].proposedQuorumNumber);
       }
+
+      emit ApprovalConfirmed(msg.sender);
     }
 
 //     function noOfValidSigners() public view returns(uint8) {

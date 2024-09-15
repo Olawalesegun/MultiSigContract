@@ -28,7 +28,7 @@ describe("", function() {
     const MultiSig = await hre.ethers.getContractFactory("Multisig");
     const multiSig = await MultiSig.deploy(numberOfQuorum, arrOfSigners);
 
-    return { owner, numberOfQuorum, arrOfSigners, token, TokenName, multiSig, signer1 };
+    return { owner, MultiSig, numberOfQuorum, arrOfSigners, token, TokenName, multiSig, signer1 };
   }
 
   describe("Token Testing", function(){
@@ -70,6 +70,15 @@ describe("", function() {
       const { multiSig, arrOfSigners, numberOfQuorum}= await loadFixture(deployCodeAsGlobal);
       expect(await multiSig.noOfValidSigners()).greaterThan(1);
     });
+
+    it("should test that when fewer list of signers passed, it reverts err", async )
+
+    it("Should test that when quorum is less than 1 reverts with the Error Msg", async function(){
+      const {MultiSig} = await loadFixture(deployCodeAsGlobal);
+      const [signer1, signer2, signer3] = await hre.ethers.getSigners();
+      const arrOfSigners = [signer1, signer2, signer3];
+      expect(MultiSig.deploy(1, arrOfSigners)).to.be.revertedWith("quorum is too small");
+    })
 
     // it("Should test for address zero", async function(){
     //   const { owner, multiSig, arrOfSigners, numberOfQuorum}= await loadFixture(deployCodeAsGlobal);
