@@ -52,10 +52,10 @@ describe("", function() {
     });
 
     it("Should test for initialSupply", async function(){
-      const {token, totalSupply} = await loadFixture(deployToken);
+      const {token, totalSupply, TokenDecimals} = await loadFixture(deployToken);
       const actualSupply = await token.totalSupply();
-      const expectedSupply = ethers.parseUnits(totalSupply.toString(), 18)
-      expect(actualSupply).to.be.equal(totalSupply);
+      const expectedSupply = ethers.parseUnits(totalSupply.toString(), TokenDecimals)
+      expect(actualSupply).to.be.equal(expectedSupply);
     })
   })
   
@@ -71,7 +71,14 @@ describe("", function() {
       expect(await multiSig.noOfValidSigners()).greaterThan(1);
     });
 
-    it("should test that when fewer list of signers passed, it reverts err", async )
+    it("should test that when fewer list of signers passed, it reverts err", async function(){
+      const {MultiSig} = await loadFixture(deployCodeAsGlobal);
+      const [signer1] = await hre.ethers.getSigners();
+      const arr = [signer1];
+
+      expect(MultiSig.deploy(2, arr)).to.be.revertedWith("few valid signers");
+
+    })
 
     it("Should test that when quorum is less than 1 reverts with the Error Msg", async function(){
       const {MultiSig} = await loadFixture(deployCodeAsGlobal);
