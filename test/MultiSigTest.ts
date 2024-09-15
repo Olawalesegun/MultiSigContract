@@ -29,6 +29,7 @@ describe("", function() {
     const multiSig = await MultiSig.deploy(numberOfQuorum, arrOfSigners);
 
     return { owner, MultiSig, numberOfQuorum, arrOfSigners, token, TokenName, multiSig, signer1 };
+
   }
 
   describe("Token Testing", function(){
@@ -87,6 +88,26 @@ describe("", function() {
       expect(MultiSig.deploy(1, arrOfSigners)).to.be.revertedWith("quorum is too small");
     })
 
+    it("Should revert when Address 0 is passed as a signer", async function(){
+      const {MultiSig} = await loadFixture(deployCodeAsGlobal);
+      const [signer2, signer3] = await hre.ethers.getSigners();
+      const ZeroADD = "0x00000000000000000000000000000000000000";
+      const arrOfSigners = [ZeroADD, signer2.address, signer3.address];
+      expect(MultiSig.deploy(3, arrOfSigners)).to.be.revertedWith("");
+    });
+
+    it("should revert when same address are passed more than once", async function(){
+      const {owner, multiSig}= await loadFixture(deployCodeAsGlobal);
+      expect(await multiSig.creator()).to.be.equal(owner.address);
+    });
+
+    it("should test when quorum is greater than valid signers it reverts", async function(){
+      const { MultiSig, numberOfQuorum } = await loadFixture(deployCodeAsGlobal);
+      const [signer1, signer2, signer3] = await hre.ethers.getSigners();
+      const arr = [signer1, signer2, signer3];
+      expect(MultiSig.deploy(7, arr)).to.be.revertedWith("quorum greater than valid signers");
+    });
+
     // it("Should test for address zero", async function(){
     //   const { owner, multiSig, arrOfSigners, numberOfQuorum}= await loadFixture(deployCodeAsGlobal);
     //   const ADDRESS_ZERO = "0x0000000000000000000000000000000000";
@@ -100,4 +121,36 @@ describe("", function() {
     // it("Should ")
 
   });
+
+  describe("Transfer Functionality", function(){
+
+    async function deployContractWithTokens(){
+      const {token, multiSig} = await loadFixture(deployCodeAsGlobal);
+      const [owner, signer1, signer2, signer3] = await hre.ethers.getSigners();
+      const toBeTransferredAmount = await ethers.parseUnits("20", 18);
+      await token.transfer(multiSig.getAddress(), toBeTransferredAmount);
+
+      return {multiSig, token, toBeTransferredAmount, owner, signer1, signer2, signer3};
+    }
+
+
+    it("Should test if user is a valid signatory to call the Transfer func", async function(){
+      const {multiSig, token } = await loadFixture(deployContractWithTokens);
+      console.log(await multiSig.getAddress());
+      console.log("balance of Contract Addres", await token.balanceOf(multiSig.getAddress()));
+      
+      
+      
+      // const {MultiSig, numberOfQuorum, token} = await loadFixture(deployCodeAsGlobal);
+      // const [owner, signer1, signer2, signer3] = await hre.ethers.getSigners();
+      // const arr = [signer1, signer2, signer3];
+      // const amount = await hre.ethers.parseUnits("200", 18);
+      // console.log(hre.ethers.parseUnits("200", 18));
+
+      // const multiSig = await MultiSig.deploy(numberOfQuorum, arr);
+      // expect(multiSig.connect(signer1).transfer(amount, signer2, await token.getAddress()))
+      // // multiSig.transfer()
+
+    })
+  })
 });

@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Multisig {
-    address creator;
+    address public creator;
     uint8 public quorum;
     uint8 public noOfValidSigners;
     uint256 public txCount;
@@ -54,13 +54,11 @@ contract Multisig {
             isValidSigner[msg.sender] = true;
             noOfValidSigners += 1;
         }
-
         creator = msg.sender;
 
         require(_quorum <= noOfValidSigners, "quorum greater than valid signers");
         quorum = _quorum;
     }
-
 
 
     function transfer(uint256 _amount, address _recipient, address _tokenAddress) external {
