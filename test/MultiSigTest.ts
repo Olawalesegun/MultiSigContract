@@ -161,6 +161,24 @@ describe("", function() {
       const amount = await hre.ethers.parseUnits("0", 18);
       expect(multiSig.connect(owner).transfer(amount, recipient.getAddress(), token.getAddress()))
       .to.be.revertedWith("can't send zero amount");
+    });
+
+    it("should revert if the Address Zero is found to be the address passed as recipient", async function(){
+      const {token, multiSig, owner, recipient} = await loadFixture(deployContractWithTokens);
+      const amountToBePassed = await hre.ethers.parseUnits("2", 18);
+      const Recp_addr = "0x000000000000000000000000000000";
+
+      expect(multiSig.connect(owner).transfer(amountToBePassed, Recp_addr, token.getAddress()))
+      .to.be.revertedWith("address zero found");
+    })
+
+    it("should revert if the Address Zero is found to be the address passed for token", async function(){
+      const {token, multiSig, owner, signer1, signer2, recipient} = await loadFixture(deployContractWithTokens);
+      const amountToBePassed = await hre.ethers.parseUnits("2", 18);
+      const Token_addr = "0x000000000000000000000000000000";
+
+      expect(multiSig.connect(signer2).transfer(amountToBePassed, recipient.getAddress(), Token_addr))
+      .to.be.revertedWith("address zero found");
     })
 
   })
