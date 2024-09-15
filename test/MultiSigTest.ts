@@ -126,20 +126,24 @@ describe("", function() {
 
     async function deployContractWithTokens(){
       const {token, multiSig} = await loadFixture(deployCodeAsGlobal);
-      const [owner, signer1, signer2, signer3] = await hre.ethers.getSigners();
+      const [owner, signer1, signer2, signer3, recipient] = await hre.ethers.getSigners();
       const toBeTransferredAmount = await ethers.parseUnits("20", 18);
       await token.transfer(multiSig.getAddress(), toBeTransferredAmount);
 
-      return {multiSig, token, toBeTransferredAmount, owner, signer1, signer2, signer3};
+      return {multiSig, token, toBeTransferredAmount, owner, signer1, signer2, signer3, recipient};
     }
 
 
-    it("Should test if user is a valid signatory to call the Transfer func", async function(){
-      const {multiSig, token } = await loadFixture(deployContractWithTokens);
+    it("Should test if user is not a valid signatory to call the Transfer func", async function(){
+      const {multiSig, token, owner, signer1, signer2, signer3, recipient } = await loadFixture(deployContractWithTokens);
       console.log(await multiSig.getAddress());
       console.log("balance of Contract Addres", await token.balanceOf(multiSig.getAddress()));
+
+      const amountToTransfer = await ethers.parseUnits("5", 18);
+      expect(multiSig.connect(signer1).transfer(amountToTransfer, recipient.getAddress(), token.getAddress()))
+      .to.be.revertedWith("invalid Signer");
       
-      
+
       
       // const {MultiSig, numberOfQuorum, token} = await loadFixture(deployCodeAsGlobal);
       // const [owner, signer1, signer2, signer3] = await hre.ethers.getSigners();
@@ -150,7 +154,14 @@ describe("", function() {
       // const multiSig = await MultiSig.deploy(numberOfQuorum, arr);
       // expect(multiSig.connect(signer1).transfer(amount, signer2, await token.getAddress()))
       // // multiSig.transfer()
+    });
 
+    it("should revert if the amount is zero", async function(){
+      const {token, multiSig, owner, recipient} = await loadFixture(deployContractWithTokens);
+      const amount = await hre.ethers.parseUnits("0", 18);
+      expect(multiSig.connect(owner).transfer(amount, recipient.getAddress(), token.getAddress()))
+      .to.be.revertedWith("can't send zero amount");
     })
+
   })
 });
